@@ -9,14 +9,50 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
     <style>
+        :root {
+            --bg-primary: #000000;
+            --bg-secondary: #1f2937;
+            --text-primary: #10b981;
+            --text-secondary: #34d399;
+            --text-accent: #06b6d4;
+            --border-primary: #10b981;
+            --border-secondary: #34d399;
+            --glow-color: #10b981;
+            --scanline-color: rgba(0, 255, 65, 0.03);
+            --btn-shadow: rgba(0,0,0,0.8);
+            --btn-hover-shadow: rgba(0,0,0,0.5);
+            --error-bg: #7f1d1d;
+            --error-border: #f87171;
+            --error-text: #fca5a5;
+            --error-text-accent: #f87171;
+        }
+
+        [data-theme="light"] {
+            --bg-primary: #f8fafc;
+            --bg-secondary: #e2e8f0;
+            --text-primary: #1e293b;
+            --text-secondary: #475569;
+            --text-accent: #0ea5e9;
+            --border-primary: #1e293b;
+            --border-secondary: #475569;
+            --glow-color: #1e293b;
+            --scanline-color: rgba(30, 41, 59, 0.03);
+            --btn-shadow: rgba(255,255,255,0.8);
+            --btn-hover-shadow: rgba(255,255,255,0.5);
+            --error-bg: #fef2f2;
+            --error-border: #dc2626;
+            --error-text: #991b1b;
+            --error-text-accent: #dc2626;
+        }
+
         * {
             font-family: 'Press Start 2P', monospace;
         }
         .retro-glow {
-            box-shadow: 0 0 20px currentColor, inset 0 0 20px rgba(0, 255, 65, 0.1);
+            box-shadow: 0 0 20px var(--glow-color), inset 0 0 20px var(--scanline-color);
         }
         .scanlines {
-            background: linear-gradient(transparent 50%, rgba(0, 255, 65, 0.03) 50%);
+            background: linear-gradient(transparent 50%, var(--scanline-color) 50%);
             background-size: 100% 4px;
         }
         .crt-flicker {
@@ -34,25 +70,34 @@
             image-rendering: crisp-edges;
         }
         .retro-btn {
-            text-shadow: 2px 2px 0px rgba(0,0,0,0.8);
+            text-shadow: 2px 2px 0px var(--btn-shadow);
             border: 4px solid;
             transition: all 0.1s ease;
         }
         .retro-btn:hover:not(:disabled) {
             transform: translate(-2px, -2px);
-            box-shadow: 4px 4px 0px rgba(0,0,0,0.5);
+            box-shadow: 4px 4px 0px var(--btn-hover-shadow);
         }
         .retro-btn:active:not(:disabled) {
             transform: translate(0px, 0px);
-            box-shadow: 2px 2px 0px rgba(0,0,0,0.5);
+            box-shadow: 2px 2px 0px var(--btn-hover-shadow);
+        }
+        .theme-switcher {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
         }
     </style>
 </head>
-<body class="bg-black text-green-400 min-h-screen scanlines crt-flicker">
+<body class="min-h-screen scanlines crt-flicker" style="background-color: var(--bg-primary); color: var(--text-primary);">
+    <button id="themeToggle" class="theme-switcher retro-btn text-xs px-4 py-2" style="background-color: var(--text-primary); color: var(--bg-primary); border-color: var(--border-primary);">
+        [LIGHT]
+    </button>
     <div class="max-w-4xl mx-auto p-6">
-        <div class="bg-gray-900 border-4 border-green-400 p-6 mb-6 retro-glow">
-            <h1 class="text-2xl md:text-4xl text-center text-green-400 mb-2 tracking-wider">RETRO TERMINAL</h1>
-            <p class="text-center text-green-300 text-xs md:text-sm tracking-widest">&gt; LOCATION • TIME • WEATHER SYSTEM &lt;</p>
+        <div class="p-6 mb-6 retro-glow border-4" style="background-color: var(--bg-secondary); border-color: var(--border-primary);">
+            <h1 class="text-2xl md:text-4xl text-center mb-2 tracking-wider" style="color: var(--text-primary);">RETRO TERMINAL</h1>
+            <p class="text-center text-xs md:text-sm tracking-widest" style="color: var(--text-secondary);">&gt; LOCATION • TIME • WEATHER SYSTEM &lt;</p>
         </div>
         
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -70,52 +115,83 @@
             </button>
         </div>
         
-        <div id="status" class="bg-gray-900 border-4 border-cyan-400 p-4 mb-4 retro-glow" style="display: none;">
-            <div class="text-center text-cyan-400 text-xs md:text-sm tracking-wider animate-pulse">
+        <div id="status" class="p-4 mb-4 retro-glow border-4" style="display: none; background-color: var(--bg-secondary); border-color: var(--text-accent);">
+            <div class="text-center text-xs md:text-sm tracking-wider animate-pulse" style="color: var(--text-accent);">
                 &gt; SCANNING COORDINATES...
-                <div class="mt-2 text-cyan-300">▓▓▓▓▓▓▓▓▓▓</div>
+                <div class="mt-2" style="color: var(--text-secondary);">▓▓▓▓▓▓▓▓▓▓</div>
             </div>
         </div>
         
-        <div id="location-info" class="bg-gray-900 border-4 border-green-400 p-4 mb-4 retro-glow" style="display: none;">
-            <h3 class="text-green-400 text-sm md:text-lg mb-3 tracking-wider">[LOCATION DATA]</h3>
-            <p id="coordinates" class="text-green-300 text-xs md:text-sm mb-4 font-mono"></p>
-            <iframe id="map" src="" frameborder="0" class="w-full h-64 md:h-96 border-4 border-green-400 pixel-perfect"></iframe>
+        <div id="location-info" class="p-4 mb-4 retro-glow border-4" style="display: none; background-color: var(--bg-secondary); border-color: var(--border-primary);">
+            <h3 class="text-sm md:text-lg mb-3 tracking-wider" style="color: var(--text-primary);">[LOCATION DATA]</h3>
+            <p id="coordinates" class="text-xs md:text-sm mb-4 font-mono" style="color: var(--text-secondary);"></p>
+            <iframe id="map" src="" frameborder="0" class="w-full h-64 md:h-96 border-4 pixel-perfect" style="border-color: var(--border-primary);"></iframe>
         </div>
         
-        <div id="time-info" class="bg-gray-900 border-4 border-blue-400 p-4 mb-4 retro-glow" style="display: none;">
-            <h3 class="text-blue-400 text-sm md:text-lg mb-3 tracking-wider">[SYSTEM TIME]</h3>
-            <p id="current-time" class="text-blue-300 text-xs md:text-sm font-mono tracking-wider"></p>
+        <div id="time-info" class="p-4 mb-4 retro-glow border-4" style="display: none; background-color: var(--bg-secondary); border-color: var(--text-accent);">
+            <h3 class="text-sm md:text-lg mb-3 tracking-wider" style="color: var(--text-accent);">[SYSTEM TIME]</h3>
+            <p id="current-time" class="text-xs md:text-sm font-mono tracking-wider" style="color: var(--text-secondary);"></p>
         </div>
         
-        <div id="weather-info" class="bg-gray-900 border-4 border-cyan-400 p-4 mb-4 retro-glow" style="display: none;">
-            <h3 class="text-cyan-400 text-sm md:text-lg mb-3 tracking-wider">[WEATHER DATA]</h3>
-            <p id="weather-details" class="text-cyan-300 text-xs md:text-sm font-mono leading-relaxed"></p>
+        <div id="weather-info" class="p-4 mb-4 retro-glow border-4" style="display: none; background-color: var(--bg-secondary); border-color: var(--text-accent);">
+            <h3 class="text-sm md:text-lg mb-3 tracking-wider" style="color: var(--text-accent);">[WEATHER DATA]</h3>
+            <p id="weather-details" class="text-xs md:text-sm font-mono leading-relaxed" style="color: var(--text-secondary);"></p>
         </div>
         
-        <div id="tips-info" class="bg-gray-900 border-4 border-blue-400 p-4 mb-4 retro-glow" style="display: none;">
-            <h3 class="text-blue-400 text-sm md:text-lg mb-3 tracking-wider">[DAILY PROTOCOLS]</h3>
-            <div id="tips-content" class="text-blue-300 text-xs md:text-sm font-mono leading-relaxed"></div>
+        <div id="tips-info" class="p-4 mb-4 retro-glow border-4" style="display: none; background-color: var(--bg-secondary); border-color: var(--text-accent);">
+            <h3 class="text-sm md:text-lg mb-3 tracking-wider" style="color: var(--text-accent);">[DAILY PROTOCOLS]</h3>
+            <div id="tips-content" class="text-xs md:text-sm font-mono leading-relaxed" style="color: var(--text-secondary);"></div>
         </div>
         
-        <div id="food-info" class="bg-gray-900 border-4 border-purple-400 p-4 mb-4 retro-glow" style="display: none;">
-            <h3 class="text-purple-400 text-sm md:text-lg mb-3 tracking-wider">[NUTRITION PROGRAM - TODAY]</h3>
-            <div id="food-content" class="text-purple-300 text-xs md:text-sm font-mono leading-relaxed"></div>
+        <div id="food-info" class="p-4 mb-4 retro-glow border-4" style="display: none; background-color: var(--bg-secondary); border-color: var(--text-accent);">
+            <h3 class="text-sm md:text-lg mb-3 tracking-wider" style="color: var(--text-accent);">[NUTRITION PROGRAM - TODAY]</h3>
+            <div id="food-content" class="text-xs md:text-sm font-mono leading-relaxed" style="color: var(--text-secondary);"></div>
         </div>
         
-        <div id="food-tomorrow-info" class="bg-gray-900 border-4 border-yellow-400 p-4 mb-4 retro-glow" style="display: none;">
-            <h3 class="text-yellow-400 text-sm md:text-lg mb-3 tracking-wider">[NUTRITION PROGRAM - TOMORROW]</h3>
-            <div id="food-tomorrow-content" class="text-yellow-300 text-xs md:text-sm font-mono leading-relaxed"></div>
+        <div id="food-tomorrow-info" class="p-4 mb-4 retro-glow border-4" style="display: none; background-color: var(--bg-secondary); border-color: var(--text-accent);">
+            <h3 class="text-sm md:text-lg mb-3 tracking-wider" style="color: var(--text-accent);">[NUTRITION PROGRAM - TOMORROW]</h3>
+            <div id="food-tomorrow-content" class="text-xs md:text-sm font-mono leading-relaxed" style="color: var(--text-secondary);"></div>
         </div>
         
-        <div id="error" class="bg-red-900 border-4 border-red-400 p-4 mb-4 text-red-300 text-xs md:text-sm font-mono retro-glow animate-pulse" style="display: none;">
-            <span class="text-red-400 tracking-wider">[ERROR]</span> 
+        <div id="error" class="p-4 mb-4 text-xs md:text-sm font-mono retro-glow animate-pulse border-4" style="display: none; background-color: var(--error-bg); border-color: var(--error-border); color: var(--error-text);">
+            <span class="tracking-wider" style="color: var(--error-text-accent);">[ERROR]</span> 
             <span id="error-text"></span>
         </div>
     </div>
 
     <script>
         let buttonCooldowns = {};
+        let currentTheme = 'dark';
+
+        function initializeTheme() {
+            const savedTheme = localStorage.getItem('theme') || 'dark';
+            currentTheme = savedTheme;
+            applyTheme(currentTheme);
+        }
+
+        function toggleTheme() {
+            currentTheme = currentTheme === 'dark' ? 'light' : 'dark';
+            applyTheme(currentTheme);
+            localStorage.setItem('theme', currentTheme);
+        }
+
+        function applyTheme(theme) {
+            const body = document.body;
+            const themeButton = document.getElementById('themeToggle');
+            
+            if (theme === 'light') {
+                body.setAttribute('data-theme', 'light');
+                themeButton.textContent = '[DARK]';
+            } else {
+                body.removeAttribute('data-theme');
+                themeButton.textContent = '[LIGHT]';
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            initializeTheme();
+            document.getElementById('themeToggle').addEventListener('click', toggleTheme);
+        });
 
         function startCooldown(buttonId, originalText) {
             const button = document.getElementById(buttonId);
