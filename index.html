@@ -112,7 +112,7 @@
         function startCooldown(buttonId, originalText) {
             const button = document.getElementById(buttonId);
             const now = Date.now();
-            const cooldownEnd = now + 3 * 60 * 1000;
+            const cooldownEnd = now + 1 * 60 * 1000;
             
             buttonCooldowns[buttonId] = cooldownEnd;
             button.disabled = true;
