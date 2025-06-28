@@ -63,9 +63,9 @@
     <div class="container">
         <h1>Hi! 👋</h1>
         
-        <button onclick="getLocation()">Get My Location, Time & Weather</button>
-        <button onclick="generateTodaysTips()">Get Today's Tips</button>
-        <button onclick="suggestWhatToEat()">What to Eat Today</button>
+        <button id="locationButton" onclick="getLocation()">Get My Location, Time & Weather</button>
+        <button id="tipsButton" onclick="generateTodaysTips()">Get Today's Tips</button>
+        <button id="todayButton" onclick="suggestWhatToEat()">What to Eat Today</button>
         <button id="tomorrowButton" onclick="suggestWhatToEatTomorrow()">What to Eat Tomorrow</button>
         
         <div id="status" class="info-section" style="display: none;">
@@ -107,7 +107,43 @@
     </div>
 
     <script>
+        let buttonCooldowns = {};
+
+        function startCooldown(buttonId, originalText) {
+            const button = document.getElementById(buttonId);
+            const now = Date.now();
+            const cooldownEnd = now + 1 * 60 * 1000;
+            
+            buttonCooldowns[buttonId] = cooldownEnd;
+            button.disabled = true;
+            
+            updateButtonCountdown(buttonId, originalText);
+        }
+
+        function updateButtonCountdown(buttonId, originalText) {
+            const button = document.getElementById(buttonId);
+            const now = Date.now();
+            const cooldownEnd = buttonCooldowns[buttonId];
+            
+            if (!cooldownEnd || now >= cooldownEnd) {
+                button.disabled = false;
+                button.textContent = originalText;
+                delete buttonCooldowns[buttonId];
+                return;
+            }
+            
+            const remaining = Math.ceil((cooldownEnd - now) / 1000);
+            const minutes = Math.floor(remaining / 60);
+            const seconds = remaining % 60;
+            
+            button.textContent = `Wait ${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            setTimeout(() => updateButtonCountdown(buttonId, originalText), 1000);
+        }
+
         function getLocation() {
+            const button = document.getElementById('locationButton');
+            if (button.disabled) return;
             if (!navigator.geolocation) {
                 showError("Geolocation is not supported by this browser.");
                 return;
@@ -125,6 +161,7 @@
                     showMap(lat, lon);
                     showCurrentTime();
                     getWeather(lat, lon);
+                    startCooldown('locationButton', 'Get My Location, Time & Weather');
                 },
                 function(error) {
                     document.getElementById('status').style.display = 'none';
@@ -225,6 +262,8 @@
         }
 
         function generateTodaysTips() {
+            const button = document.getElementById('tipsButton');
+            if (button.disabled) return;
             const tips = [
                 "💧 Stay hydrated! Drink at least 8 glasses of water today.",
                 "🚶‍♀️ Take a 10-minute walk outside for fresh air and exercise.",
@@ -255,9 +294,13 @@
             const tipsHtml = selectedTips.map(tip => `<p>${tip}</p>`).join('');
             document.getElementById('tips-content').innerHTML = tipsHtml;
             document.getElementById('tips-info').style.display = 'block';
+            
+            startCooldown('tipsButton', 'Get Today\'s Tips');
         }
 
         function suggestWhatToEat() {
+            const button = document.getElementById('todayButton');
+            if (button.disabled) return;
             const mealOptions = {
                 breakfast: [
                     "🥞 Pancakes with fresh berries",
@@ -327,17 +370,14 @@
             
             document.getElementById('food-content').innerHTML = foodHtml;
             document.getElementById('food-info').style.display = 'block';
+            
+            startCooldown('todayButton', 'What to Eat Today');
         }
 
-        let tomorrowButtonCooldown = null;
 
         function suggestWhatToEatTomorrow() {
             const button = document.getElementById('tomorrowButton');
-            const now = Date.now();
-            
-            if (tomorrowButtonCooldown && now < tomorrowButtonCooldown) {
-                return;
-            }
+            if (button.disabled) return;
 
             const mealOptions = {
                 breakfast: [
@@ -394,29 +434,7 @@
             document.getElementById('food-tomorrow-content').innerHTML = finalHtml;
             document.getElementById('food-tomorrow-info').style.display = 'block';
 
-            tomorrowButtonCooldown = now + 1 * 60 * 1000;
-            button.disabled = true;
-            
-            updateTomorrowButtonCountdown();
-        }
-
-        function updateTomorrowButtonCountdown() {
-            const button = document.getElementById('tomorrowButton');
-            const now = Date.now();
-            
-            if (!tomorrowButtonCooldown || now >= tomorrowButtonCooldown) {
-                button.disabled = false;
-                button.textContent = 'What to Eat Tomorrow';
-                return;
-            }
-            
-            const remaining = Math.ceil((tomorrowButtonCooldown - now) / 1000);
-            const minutes = Math.floor(remaining / 60);
-            const seconds = remaining % 60;
-            
-            button.textContent = `Wait ${minutes}:${seconds.toString().padStart(2, '0')}`;
-            
-            setTimeout(updateTomorrowButtonCountdown, 1000);
+            startCooldown('tomorrowButton', 'What to Eat Tomorrow');
         }
     </script>
 </body>
